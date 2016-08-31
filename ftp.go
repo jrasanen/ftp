@@ -27,6 +27,7 @@ type ServerConn struct {
 	conn     *textproto.Conn
 	host     string
 	timeout  time.Duration
+	minSpeed int
 	features map[string]string
 }
 
@@ -79,6 +80,7 @@ func DialTimeout(addr string, timeout time.Duration) (*ServerConn, error) {
 		host:     host,
 		timeout:  timeout,
 		features: make(map[string]string),
+		minSpeed: 131072, // default min speed in 128kbit
 	}
 
 	_, _, err = c.conn.ReadResponse(StatusReady)
@@ -578,6 +580,10 @@ func (c *ServerConn) RetrFrom(path string, offset uint64) (io.ReadCloser, error)
 	return &response{conn, c}, nil
 }
 
+func (c *ServerConn) SetMinSpeed(minSpeed int) {
+	c.minSpeed = minSpeed
+}
+
 // Stor issues a STOR FTP command to store a file to the remote FTP server.
 // Stor creates the specified file with the content of the io.Reader.
 //
@@ -662,6 +668,7 @@ func (c *ServerConn) Quit() error {
 
 // Read implements the io.Reader interface on a FTP data connection.
 func (r *response) Read(buf []byte) (int, error) {
+	r.conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(((len(buf) / r.c.minSpeed) + 5))))
 	return r.conn.Read(buf)
 }
 
