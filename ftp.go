@@ -120,9 +120,12 @@ func (c *ServerConn) Login(user, password string, binary bool) error {
 	if binary {
 		// Switch to binary mode
 		_, _, err = c.cmd(StatusCommandOK, "TYPE I")
-		if err != nil {
-			return err
-		}
+	} else {
+		// Switch to ascii mode
+		_, _, err = c.cmd(StatusCommandOK, "TYPE A")
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
