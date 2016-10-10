@@ -100,7 +100,7 @@ func DialTimeout(addr string, timeout time.Duration) (*ServerConn, error) {
 //
 // "anonymous"/"anonymous" is a common user/password scheme for FTP servers
 // that allows anonymous read-only accounts.
-func (c *ServerConn) Login(user, password string) error {
+func (c *ServerConn) Login(user, password string, binary bool) error {
 	code, message, err := c.cmd(-1, "USER %s", user)
 	if err != nil {
 		return err
@@ -117,10 +117,12 @@ func (c *ServerConn) Login(user, password string) error {
 		return errors.New(message)
 	}
 
-	// Switch to binary mode
-	_, _, err = c.cmd(StatusCommandOK, "TYPE I")
-	if err != nil {
-		return err
+	if binary {
+		// Switch to binary mode
+		_, _, err = c.cmd(StatusCommandOK, "TYPE I")
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
