@@ -631,6 +631,22 @@ func (c *ServerConn) Delete(path string) error {
 	return err
 }
 
+// Size issues a SIZE FTP command to get size for the specified file from the
+// remote FTP server.
+func (c *ServerConn) Size(path string) (size int64, err error) {
+	_, msg, err := c.cmd(StatusFile, "SIZE %s", path)
+
+	if err != nil {
+		return 0, err
+	}
+
+	fileSize, err := strconv.ParseInt(msg, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return fileSize, nil
+}
+
 // MakeDir issues a MKD FTP command to create the specified directory on the
 // remote FTP server.
 func (c *ServerConn) MakeDir(path string) error {
